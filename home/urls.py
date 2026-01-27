@@ -7,3 +7,8 @@ urlpatterns = [
     path('register/' , views.register, name='register')
 
 ]
+
+
+urlpatterns = [
+    path('', views.home, name='home'),
+]

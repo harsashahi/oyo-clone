@@ -1,0 +1,24 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Available Hotels</title>
+    <link rel="stylesheet" href="{% static 'home/style.css' %}">
+</head>
+<body>
+
+<h1>Available Hotels</h1>
+
+<div class="hotel-container">
+{% for hotel in hotels %}
+    <div class="hotel-card">
+        <h2>{{ hotel.name }}</h2>
+        <p>{{ hotel.location }}</p>
+        <p class="price">₹ {{ hotel.price_per_night }}/night</p>
+        <p class="rating">⭐ {{ hotel.rating }}</p>
+    </div>
+{% endfor %}
+</div>
+
+</body>
+</html>
