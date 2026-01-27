@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Hotel Search - OYO Clone{% endblock %}
+
+{% block content %}
+<div class="search-container">
+    <!-- Search Filters Sidebar -->
+    <div class="filters-sidebar">
+        <h2>Filter Hotels</h2>
+        
+        <form method="GET" class="search-form">
+            <!-- Search Query -->
+            <div class="filter-group">
+                <label for="q">Search Hotels</label>
+                <input type="text" id="q" name="q" placeholder="Hotel name or location" value="{{ query }}" class="form-control">
+            </div>
+
+            <!-- Price Range -->
+            <div class="filter-group">
+                <label>Price Range</label>
+                <div class="price-inputs">
+                    <input type="number" name="min_price" placeholder="Min" value="{{ min_price }}" class="form-control">
+                    <input type="number" name="max_price" placeholder="Max" value="{{ max_price }}" class="form-control">
+                </div>
+            </div>
+
+            <!-- Sorting -->
+            <div class="filter-group">
+                <label for="sort_by">Sort By</label>
+                <select id="sort_by" name="sort_by" class="form-control">
+                    <option value="-hotel_price">Price: High to Low</option>
+                    <option value="hotel_price">Price: Low to High</option>
+                    <option value="hotel_name">Name: A to Z</option>
+                </select>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="{% url 'hotel_search' %}" class="btn btn-secondary">Clear Filters</a>
+        </form>
+    </div>
+
+    <!-- Hotels Results -->
+    <div class="hotels-results">
+        <h1>Hotels Found: {{ hotels|length }}</h1>
+        
+        {% if hotels %}
+            <div class="hotels-grid">
+                {% for hotel in hotels %}
+                <div class="hotel-card">
+                    <!-- Hotel Image -->
+                    <div class="hotel-image">
+                        {% if hotel.hotel_images.all %}
+                            <img src="{{ hotel.hotel_images.0.image.url }}" alt="{{ hotel.hotel_name }}" class="img-fluid">
+                        {% else %}
+                            <div class="no-image-placeholder">
+                                <i class="fas fa-image"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Hotel Info -->
+                    <div class="hotel-info">
+                        <h3>{{ hotel.hotel_name }}</h3>
+                        <p class="location">
+                            <i class="fas fa-map-marker-alt"></i> {{ hotel.hotel_location }}
+                        </p>
+                        <p class="description">{{ hotel.hotel_description|truncatewords:15 }}</p>
+
+                        <!-- Price -->
+                        <div class="price-info">
+                            <span class="offer-price">Rs {{ hotel.hotel_offer_price }}</span>
+                            <span class="original-price">Rs {{ hotel.hotel_price }}</span>
+                        </div>
+
+                        <!-- Amenities Preview -->
+                        <div class="amenities-preview">
+                            {% for amenity in hotel.ameneties.all|slice:":3" %}
+                                <span class="badge">{{ amenity.name }}</span>
+                            {% endfor %}
+                            {% if hotel.ameneties.all|length > 3 %}
+                                <span class="badge">+{{ hotel.ameneties.all|length|add:"-3" }} more</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="hotel-actions">
+                            <a href="{% url 'hotel_detail' hotel.hotel_slug %}" class="btn btn-outline">View Details</a>
+                            {% if user.is_authenticated %}
+                                <button class="btn btn-primary" onclick="bookHotel({{ hotel.id }})">Book Now</button>
+                            {% else %}
+                                <a href="{% url 'login' %}" class="btn btn-primary">Book Now</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-results">
+                <i class="fas fa-search"></i>
+                <h2>No Hotels Found</h2>
+                <p>Try adjusting your search filters</p>
+                <a href="{% url 'hotel_search' %}" class="btn btn-primary">Clear Filters</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .search-container {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        gap: 30px;
+        padding: 30px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .filters-sidebar {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        height: fit-content;
+        position: sticky;
+        top: 20px;
+    }
+
+    .filter-group {
+        margin-bottom: 20px;
+    }
+
+    .filter-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .price-inputs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .hotels-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .hotel-card {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .hotel-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+
+    .hotel-image {
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+        background: #e9ecef;
+    }
+
+    .hotel-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .no-image-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        font-size: 48px;
+    }
+
+    .hotel-info {
+        padding: 15px;
+    }
+
+    .hotel-info h3 {
+        font-size: 18px;
+        margin-bottom: 5px;
+        color: #1a1a1a;
+    }
+
+    .location {
+        color: #666;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    .description {
+        color: #777;
+        font-size: 13px;
+        margin-bottom: 10px;
+        line-height: 1.4;
+    }
+
+    .price-info {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .offer-price {
+        font-size: 20px;
+        font-weight: bold;
+        color: #ff6b6b;
+    }
+
+    .original-price {
+        text-decoration: line-through;
+        color: #999;
+    }
+
+    .amenities-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 10px;
+    }
+
+    .badge {
+        background: #e9ecef;
+        color: #495057;
+        padding: 3px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+    }
+
+    .hotel-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .btn {
+        padding: 8px 12px;
+        text-align: center;
+        border-radius: 4px;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .btn-outline {
+        background: white;
+        color: #ff6b6b;
+        border: 1px solid #ff6b6b;
+    }
+
+    .btn-primary {
+        background: #ff6b6b;
+        color: white;
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .no-results i {
+        font-size: 64px;
+        color: #ddd;
+        margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .search-container {
+            grid-template-columns: 1fr;
+        }
+
+        .filters-sidebar {
+            position: static;
+        }
+
+        .hotels-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    function bookHotel(hotelId) {
+        alert('Booking system coming soon!');
+    }
+</script>
+{% endblock %}

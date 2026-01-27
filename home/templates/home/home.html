@@ -1,24 +1,400 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Available Hotels</title>
-    <link rel="stylesheet" href="{% static 'home/style.css' %}">
-</head>
-<body>
 
-<h1>Available Hotels</h1>
+{% block title %}OYO Clone - Find & Book Hotels{% endblock %}
 
-<div class="hotel-container">
-{% for hotel in hotels %}
-    <div class="hotel-card">
-        <h2>{{ hotel.name }}</h2>
-        <p>{{ hotel.location }}</p>
-        <p class="price">₹ {{ hotel.price_per_night }}/night</p>
-        <p class="rating">⭐ {{ hotel.rating }}</p>
+{% block content %}
+<div class="home-container">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <h1>Find & Book Your Perfect Hotel</h1>
+        <p>Discover amazing hotels at affordable prices</p>
+        
+        <!-- Quick Search Bar -->
+        <form method="GET" class="quick-search">
+            <input type="text" name="location" placeholder="Enter city or location" value="{{ location }}" class="search-input">
+            <input type="number" name="min_price" placeholder="Min Price" value="{{ min_price }}" class="search-input">
+            <input type="number" name="max_price" placeholder="Max Price" value="{{ max_price }}" class="search-input">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
     </div>
-{% endfor %}
+
+    <!-- Hotels Listing -->
+    <div class="hotels-section">
+        <!-- Featured Hotels Section -->
+        {% if featured_hotels %}
+        <div class="featured-section">
+            <h2 style="display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-star" style="color: #ffc107;"></i> Featured Hotels
+            </h2>
+            <p style="color: #666; margin-bottom: 20px;">Special deals on our most popular hotels</p>
+            
+            <div class="hotels-grid">
+                {% for hotel in featured_hotels %}
+                <div class="hotel-card featured-card">
+                    <!-- Featured Badge -->
+                    <div style="position: absolute; top: 10px; right: 10px; background: #ffc107; color: #333; padding: 8px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; z-index: 10;">
+                        <i class="fas fa-star"></i> FEATURED
+                    </div>
+
+                    <!-- Hotel Image -->
+                    <div class="hotel-image">
+                        {% if hotel.hotel_images.all %}
+                            <img src="{{ hotel.hotel_images.0.image.url }}" alt="{{ hotel.hotel_name }}" class="img-fluid">
+                        {% else %}
+                            <div class="no-image-placeholder">
+                                <i class="fas fa-image"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Hotel Details -->
+                    <div class="hotel-card-body">
+                        <h3>{{ hotel.hotel_name }}</h3>
+                        <p class="location">
+                            <i class="fas fa-map-marker-alt"></i> {{ hotel.hotel_location }}
+                        </p>
+                        <p class="description">{{ hotel.hotel_description|truncatewords:10 }}</p>
+
+                        <!-- Price Section -->
+                        <div class="hotel-price">
+                            <span class="offer-price">Rs {{ hotel.hotel_offer_price }}</span>
+                            <span class="original-price">Rs {{ hotel.hotel_price }}</span>
+                        </div>
+
+                        <!-- Amenities -->
+                        <div class="amenities-mini">
+                            {% for amenity in hotel.ameneties.all|slice:":2" %}
+                                <span class="amenity-badge">{{ amenity.name }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="card-actions">
+                            <a href="{% url 'hotel_detail' hotel.hotel_slug %}" class="btn btn-outline">View Details</a>
+                            {% if user.is_authenticated %}
+                                <button class="btn btn-primary" onclick="bookNow({{ hotel.id }})">Book Now</button>
+                            {% else %}
+                                <a href="{% url 'login' %}" class="btn btn-primary">Book Now</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <hr style="margin: 40px 0;">
+        </div>
+        {% endif %}
+
+        <!-- All Hotels Section -->
+        <h2>All Hotels</h2>
+        
+        {% if hotels %}
+            <div class="hotels-grid">
+                {% for hotel in hotels %}
+                <div class="hotel-card">
+                    <!-- Hotel Image -->
+                    <div class="hotel-image">
+                        {% if hotel.hotel_images.all %}
+                            <img src="{{ hotel.hotel_images.0.image.url }}" alt="{{ hotel.hotel_name }}" class="img-fluid">
+                        {% else %}
+                            <div class="no-image-placeholder">
+                                <i class="fas fa-image"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Hotel Details -->
+                    <div class="hotel-card-body">
+                        <h3>{{ hotel.hotel_name }}</h3>
+                        <p class="location">
+                            <i class="fas fa-map-marker-alt"></i> {{ hotel.hotel_location }}
+                        </p>
+                        <p class="description">{{ hotel.hotel_description|truncatewords:10 }}</p>
+
+                        <!-- Price Section -->
+                        <div class="hotel-price">
+                            <span class="offer-price">Rs {{ hotel.hotel_offer_price }}</span>
+                            <span class="original-price">Rs {{ hotel.hotel_price }}</span>
+                        </div>
+
+                        <!-- Amenities -->
+                        <div class="amenities-mini">
+                            {% for amenity in hotel.ameneties.all|slice:":2" %}
+                                <span class="amenity-badge">{{ amenity.name }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="card-actions">
+                            <a href="{% url 'hotel_detail' hotel.hotel_slug %}" class="btn btn-outline">View Details</a>
+                            {% if user.is_authenticated %}
+                                <button class="btn btn-primary" onclick="bookNow({{ hotel.id }})">Book Now</button>
+                            {% else %}
+                                <a href="{% url 'login' %}" class="btn btn-primary">Book Now</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-hotels">
+                <i class="fas fa-search"></i>
+                <p>No hotels found. Try adjusting your filters.</p>
+                <a href="{% url 'home' %}" class="btn btn-primary">Clear Filters</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- View All Link -->
+    <div class="view-all">
+        <a href="{% url 'hotel_search' %}" class="btn btn-primary btn-lg">View All Hotels</a>
+    </div>
 </div>
 
-</body>
-</html>
+<style>
+    .home-container {
+        padding: 20px;
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 60px 20px;
+        text-align: center;
+        border-radius: 8px;
+        margin-bottom: 40px;
+    }
+
+    .hero-section h1 {
+        font-size: 42px;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+
+    .hero-section p {
+        font-size: 18px;
+        margin-bottom: 30px;
+        opacity: 0.9;
+    }
+
+    .quick-search {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 150px;
+        gap: 10px;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .search-input {
+        padding: 12px 15px;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .hotels-section {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .hotels-section h2 {
+        font-size: 28px;
+        margin-bottom: 25px;
+        color: #1a1a1a;
+    }
+
+    .hotels-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .hotel-card {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        position: relative;
+    }
+
+    .featured-card {
+        border: 2px solid #ffc107;
+        box-shadow: 0 2px 12px rgba(255, 193, 7, 0.3);
+    }
+
+    .featured-card:hover {
+        box-shadow: 0 4px 20px rgba(255, 193, 7, 0.4);
+    }
+
+    .hotel-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+
+    .featured-section {
+        margin-bottom: 30px;
+        padding-bottom: 30px;
+    }
+
+    .hotel-image {
+        width: 100%;
+        height: 220px;
+        overflow: hidden;
+        background: #e9ecef;
+    }
+
+    .hotel-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .no-image-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        font-size: 48px;
+    }
+
+    .hotel-card-body {
+        padding: 15px;
+    }
+
+    .hotel-card h3 {
+        font-size: 18px;
+        margin-bottom: 5px;
+        color: #1a1a1a;
+    }
+
+    .location {
+        color: #666;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    .description {
+        color: #777;
+        font-size: 13px;
+        margin-bottom: 10px;
+        line-height: 1.4;
+    }
+
+    .hotel-price {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .offer-price {
+        font-size: 20px;
+        font-weight: bold;
+        color: #ff6b6b;
+    }
+
+    .original-price {
+        text-decoration: line-through;
+        color: #999;
+        font-size: 14px;
+    }
+
+    .amenities-mini {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+
+    .amenity-badge {
+        background: #e9ecef;
+        color: #495057;
+        padding: 3px 8px;
+        border-radius: 3px;
+        font-size: 11px;
+    }
+
+    .card-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .btn {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+
+    .btn-outline {
+        background: white;
+        color: #ff6b6b;
+        border: 1px solid #ff6b6b;
+    }
+
+    .btn-outline:hover {
+        background: #ff6b6b;
+        color: white;
+    }
+
+    .btn-primary {
+        background: #ff6b6b;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #ff5252;
+    }
+
+    .btn-lg {
+        padding: 15px 40px;
+        font-size: 16px;
+    }
+
+    .no-hotels {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .no-hotels i {
+        font-size: 64px;
+        color: #ddd;
+        margin-bottom: 20px;
+    }
+
+    .view-all {
+        text-align: center;
+        padding: 30px;
+    }
+
+    @media (max-width: 768px) {
+        .quick-search {
+            grid-template-columns: 1fr;
+        }
+
+        .hotels-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .hero-section h1 {
+            font-size: 28px;
+        }
+    }
+</style>
+
+<script>
+    function bookNow(hotelId) {
+        alert('Booking system coming soon!');
+    }
+</script>
+{% endblock %}

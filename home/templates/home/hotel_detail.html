@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ hotel.hotel_name }} - OYO Clone{% endblock %}
+
+{% block content %}
+<div class="hotel-detail-container">
+    <!-- Hotel Images Gallery -->
+    <div class="images-gallery">
+        {% if images %}
+            <div class="main-image">
+                <img src="{{ images.0.image.url }}" alt="{{ hotel.hotel_name }}" class="img-fluid">
+            </div>
+            {% if images|length > 1 %}
+            <div class="thumbnail-images">
+                {% for image in images %}
+                <img src="{{ image.image.url }}" alt="{{ hotel.hotel_name }}" class="thumbnail" onclick="changeMainImage(this)">
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="no-image">
+                <p>No images available</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Hotel Details -->
+    <div class="hotel-details">
+        <h1>{{ hotel.hotel_name }}</h1>
+        <p class="location"><i class="fas fa-map-marker-alt"></i> {{ hotel.hotel_location }}</p>
+        
+        <!-- Price Section -->
+        <div class="price-section">
+            <span class="original-price">Rs {{ hotel.hotel_price }}/night</span>
+            <span class="offer-price">Rs {{ hotel.hotel_offer_price }}/night</span>
+            <span class="discount">{{ discount }}% OFF</span>
+        </div>
+
+        <!-- Description -->
+        <div class="description">
+            <h3>About this hotel</h3>
+            <p>{{ hotel.hotel_description }}</p>
+        </div>
+
+        <!-- Amenities -->
+        <div class="amenities">
+            <h3>Amenities</h3>
+            <div class="amenities-list">
+                {% if hotel.ameneties.all %}
+                    {% for amenity in hotel.ameneties.all %}
+                    <div class="amenity-item">
+                        {% if amenity.icon %}
+                        <img src="{{ amenity.icon.url }}" alt="{{ amenity.name }}" class="amenity-icon">
+                        {% else %}
+                        <i class="fas fa-check-circle"></i>
+                        {% endif %}
+                        <span>{{ amenity.name }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No amenities listed</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="contact-section">
+            <h3>Contact Information</h3>
+            {% if managers %}
+                {% for manager in managers %}
+                <div class="manager-info">
+                    <p><strong>{{ manager.manager_name }}</strong></p>
+                    <p><i class="fas fa-phone"></i> {{ manager.manager_contact }}</p>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>Contact details will be provided after booking confirmation</p>
+            {% endif %}
+        </div>
+
+        <!-- Booking Button -->
+        <div class="booking-action">
+            {% if user.is_authenticated %}
+                <button class="btn btn-primary btn-lg" onclick="startBooking()">Book Now</button>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-primary btn-lg">Login to Book</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .hotel-detail-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        padding: 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .images-gallery {
+        position: sticky;
+        top: 20px;
+    }
+
+    .main-image img {
+        width: 100%;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+
+    .thumbnail-images {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+
+    .thumbnail {
+        cursor: pointer;
+        border-radius: 4px;
+        border: 2px solid transparent;
+        transition: border-color 0.3s;
+    }
+
+    .thumbnail:hover {
+        border-color: #ff6b6b;
+    }
+
+    .hotel-details h1 {
+        font-size: 32px;
+        margin-bottom: 10px;
+        color: #1a1a1a;
+    }
+
+    .location {
+        color: #666;
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+
+    .price-section {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: #fff3cd;
+        border-radius: 8px;
+    }
+
+    .original-price {
+        text-decoration: line-through;
+        color: #999;
+    }
+
+    .offer-price {
+        font-size: 24px;
+        font-weight: bold;
+        color: #ff6b6b;
+    }
+
+    .discount {
+        background: #ff6b6b;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+
+    .amenities-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin: 15px 0;
+    }
+
+    .amenity-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .amenity-icon {
+        width: 30px;
+        height: 30px;
+    }
+
+    .booking-action {
+        margin-top: 30px;
+    }
+
+    .btn-primary {
+        background: #ff6b6b;
+        border: none;
+        padding: 15px 40px;
+        font-size: 16px;
+        width: 100%;
+    }
+
+    .btn-primary:hover {
+        background: #ff5252;
+    }
+
+    @media (max-width: 768px) {
+        .hotel-detail-container {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .images-gallery {
+            position: static;
+        }
+    }
+</style>
+
+<script>
+    function changeMainImage(thumbnail) {
+        const mainImage = document.querySelector('.main-image img');
+        mainImage.src = thumbnail.src;
+    }
+
+    function startBooking() {
+        // Will be implemented in Step 4
+        alert('Booking system coming soon!');
+    }
+</script>
+{% endblock %}

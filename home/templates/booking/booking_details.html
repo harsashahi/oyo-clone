@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Booking Details - OYO Clone{% endblock %}
+
+{% block content %}
+<div class="booking-details-container" style="max-width: 1000px; margin: 40px auto;">
+    <!-- Booking Status -->
+    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h2>Booking #{{ booking.id }}</h2>
+                <p style="color: #666; margin: 5px 0;">{{ booking.created_at|date:"D, M d, Y" }}</p>
+            </div>
+            <div>
+                {% if booking.status == 'confirmed' %}
+                    <span style="background: #28a745; color: white; padding: 8px 16px; border-radius: 4px; font-weight: bold;">
+                        <i class="fas fa-check-circle"></i> Confirmed
+                    </span>
+                {% elif booking.status == 'pending' %}
+                    <span style="background: #ffc107; color: #333; padding: 8px 16px; border-radius: 4px; font-weight: bold;">
+                        <i class="fas fa-clock"></i> Pending
+                    </span>
+                {% elif booking.status == 'cancelled' %}
+                    <span style="background: #dc3545; color: white; padding: 8px 16px; border-radius: 4px; font-weight: bold;">
+                        <i class="fas fa-times-circle"></i> Cancelled
+                    </span>
+                {% elif booking.status == 'checked_in' %}
+                    <span style="background: #17a2b8; color: white; padding: 8px 16px; border-radius: 4px; font-weight: bold;">
+                        <i class="fas fa-sign-in-alt"></i> Checked In
+                    </span>
+                {% elif booking.status == 'checked_out' %}
+                    <span style="background: #6c757d; color: white; padding: 8px 16px; border-radius: 4px; font-weight: bold;">
+                        <i class="fas fa-sign-out-alt"></i> Checked Out
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Booking Details -->
+        <div class="col-md-7">
+            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                <h3 style="margin-bottom: 15px;">Hotel Details</h3>
+                <div style="border-bottom: 1px solid #eee; padding: 15px 0;">
+                    <p style="margin: 8px 0;"><strong>Hotel:</strong> {{ booking.hotel.hotel_name }}</p>
+                    <p style="margin: 8px 0;"><strong>Location:</strong> {{ booking.hotel.hotel_location }}</p>
+                    <p style="margin: 8px 0;"><strong>Price per night:</strong> Rs {{ booking.hotel.hotel_offer_price }}</p>
+                </div>
+            </div>
+
+            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                <h3 style="margin-bottom: 15px;">Stay Details</h3>
+                <div style="border-bottom: 1px solid #eee; padding: 15px 0;">
+                    <p style="margin: 8px 0;"><strong>Check-in:</strong> {{ booking.check_in_date }} (from 2:00 PM)</p>
+                    <p style="margin: 8px 0;"><strong>Check-out:</strong> {{ booking.check_out_date }} (till 12:00 PM)</p>
+                    <p style="margin: 8px 0;"><strong>Number of nights:</strong> {{ booking.get_number_of_nights }}</p>
+                    <p style="margin: 8px 0;"><strong>Number of guests:</strong> {{ booking.number_of_guests }}</p>
+                </div>
+            </div>
+
+            {% if booking.special_requests %}
+            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                <h3 style="margin-bottom: 15px;">Special Requests</h3>
+                <p style="color: #666; white-space: pre-wrap;">{{ booking.special_requests }}</p>
+            </div>
+            {% endif %}
+
+            {% if payment %}
+            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                <h3 style="margin-bottom: 15px;">Payment Information</h3>
+                <div style="border-bottom: 1px solid #eee; padding: 15px 0;">
+                    <p style="margin: 8px 0;"><strong>Payment Method:</strong> {{ payment.get_payment_method_display }}</p>
+                    <p style="margin: 8px 0;"><strong>Status:</strong> 
+                        {% if payment.payment_status == 'completed' %}
+                            <span style="color: #28a745;">Completed</span>
+                        {% endif %}
+                    </p>
+                    <p style="margin: 8px 0;"><strong>Transaction ID:</strong> {{ payment.transaction_id }}</p>
+                    <p style="margin: 8px 0;"><strong>Amount:</strong> Rs {{ payment.amount }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Actions -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                {% if booking.status == 'confirmed' %}
+                    <a href="{% url 'cancel_booking' booking.id %}" class="btn btn-danger" style="text-align: center;">Cancel Booking</a>
+                {% endif %}
+                
+                {% if booking.status == 'checked_out' and not review %}
+                    <a href="{% url 'add_review' booking.id %}" class="btn btn-primary" style="text-align: center;">Leave Review</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Summary Sidebar -->
+        <div class="col-md-5">
+            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: sticky; top: 20px;">
+                <h3 style="margin-bottom: 20px;">Price Summary</h3>
+                
+                <div style="border-bottom: 1px solid #eee; padding: 15px 0; margin: 15px 0;">
+                    <p style="display: flex; justify-content: space-between; margin: 8px 0;">
+                        <span>Price per night × {{ booking.get_number_of_nights }} nights</span>
+                        <span>Rs {{ booking.total_price }}</span>
+                    </p>
+                    <p style="display: flex; justify-content: space-between; margin: 8px 0; color: #999; font-size: 13px;">
+                        <span>Taxes & Fees</span>
+                        <span>Rs 0</span>
+                    </p>
+                </div>
+
+                <div style="padding: 15px 0;">
+                    <p style="display: flex; justify-content: space-between; font-size: 18px; font-weight: bold;">
+                        <span>Total</span>
+                        <span style="color: #ff6b6b;">Rs {{ booking.total_price }}</span>
+                    </p>
+                </div>
+
+                <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; padding: 12px; margin-top: 15px; font-size: 13px; color: #155724;">
+                    <i class="fas fa-info-circle"></i> Contact the hotel directly for any changes to your booking.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

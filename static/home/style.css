@@ -1,0 +1,56 @@
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f2f4f7;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+    padding: 20px;
+    margin: 0;
+    background-color: #ee2e24;
+    color: white;
+}
+
+.hotel-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 20px;
+}
+
+.hotel-card {
+    background: white;
+    width: 300px;
+    margin: 15px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.2s;
+}
+
+.hotel-card:hover {
+    transform: scale(1.03);
+}
+
+.hotel-card h2 {
+    margin: 15px;
+    font-size: 20px;
+}
+
+.hotel-card p {
+    margin: 8px 15px;
+    color: #555;
+}
+
+.price {
+    color: #ee2e24;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.rating {
+    color: #f9a825;
+    font-weight: bold;
+}
