@@ -52,7 +52,7 @@
                     <!-- Hotel Image -->
                     <div class="hotel-image">
                         {% if hotel.hotel_images.all %}
-                            <img src="{{ hotel.hotel_images.0.image.url }}" alt="{{ hotel.hotel_name }}" class="img-fluid">
+                            <img src="{{ hotel.hotel_images.first.image.url }}" alt="{{ hotel.hotel_name }}" class="img-fluid">
                         {% else %}
                             <div class="no-image-placeholder">
                                 <i class="fas fa-image"></i>

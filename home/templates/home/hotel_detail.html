@@ -9,7 +9,7 @@
     <div class="images-gallery">
         {% if images %}
             <div class="main-image">
-                <img src="{{ images.0.image.url }}" alt="{{ hotel.hotel_name }}" class="img-fluid">
+                <img src="{{ images.first.image.url }}" alt="{{ hotel.hotel_name }}" class="img-fluid">
             </div>
             {% if images|length > 1 %}
             <div class="thumbnail-images">

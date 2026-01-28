@@ -1,13 +1,13 @@
 from django.shortcuts import render, get_object_or_404
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from accounts.models import Hotel
 from .models import Hotel as HomeHotel
 
 
 def home(request):
     """Display all hotels with basic filtering"""
-    hotels = Hotel.objects.filter(is_active=True)
-    featured_hotels = Hotel.objects.filter(is_active=True, is_featured=True)[:5]  # Limit to 5 featured hotels
+    hotels = Hotel.objects.filter(is_active=True).prefetch_related('hotel_images')
+    featured_hotels = Hotel.objects.filter(is_active=True, is_featured=True).prefetch_related('hotel_images')[:5]  # Limit to 5 featured hotels
     
     # Get featured hotel IDs to exclude them from all hotels section
     featured_ids = [hotel.id for hotel in featured_hotels]
@@ -16,9 +16,10 @@ def home(request):
     # Filter by location if provided
     location = request.GET.get('location')
     if location:
-        featured_hotels = Hotel.objects.filter(is_active=True, is_featured=True, hotel_location__icontains=location)[:5]
+        hotels = Hotel.objects.filter(is_active=True, hotel_location__icontains=location).prefetch_related('hotel_images')
+        featured_hotels = Hotel.objects.filter(is_active=True, is_featured=True, hotel_location__icontains=location).prefetch_related('hotel_images')[:5]
         featured_ids = [hotel.id for hotel in featured_hotels]
-        all_hotels = hotels.filter(hotel_location__icontains=location).exclude(id__in=featured_ids)
+        all_hotels = hotels.exclude(id__in=featured_ids)
     
     # Filter by price range
     min_price = request.GET.get('min_price')
@@ -42,7 +43,7 @@ def home(request):
 
 def hotel_detail(request, slug):
     """Display hotel details page"""
-    hotel = get_object_or_404(Hotel, hotel_slug=slug, is_active=True)
+    hotel = get_object_or_404(Hotel.objects.prefetch_related('hotel_images', 'hotel_managers'), hotel_slug=slug, is_active=True)
     images = hotel.hotel_images.all()
     managers = hotel.hotel_managers.all()
     
@@ -56,7 +57,7 @@ def hotel_detail(request, slug):
 
 def hotel_search(request):
     """Advanced hotel search with filters"""
-    hotels = Hotel.objects.filter(is_active=True)
+    hotels = Hotel.objects.filter(is_active=True).prefetch_related('hotel_images')
     
     # Search by name or location
     query = request.GET.get('q')
